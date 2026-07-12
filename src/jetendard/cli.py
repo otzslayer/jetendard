@@ -11,7 +11,6 @@ from fontTools.ttLib import TTFont
 
 from jetendard.builder import (
     DEFAULT_KOREAN_SCALE,
-    DEFAULT_VARIANTS,
     DEFAULT_WEIGHTS,
     SUPPORTED_STYLES,
     SUPPORTED_WEIGHTS,
@@ -60,14 +59,14 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the Jetendard CLI parser."""
     parser = argparse.ArgumentParser(
         description=(
-            "Build Jetendard from ligature-enabled JetBrainsMono Nerd Font Mono "
+            "Build Jetendard from ligature-enabled JetBrainsMono Nerd Font "
             "and Pretendard Korean glyphs."
         )
     )
     parser.add_argument(
         "--latin-dir",
         default="upstream/jetbrainsmono",
-        help="Directory containing JetBrainsMonoNerdFontMono TTF files.",
+        help="Directory containing JetBrainsMono Nerd Font TTF files (Mono and non-Mono).",
     )
     parser.add_argument(
         "--cjk-dir",
@@ -126,6 +125,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Build the full 16-variant Jetendard coverage matrix.",
     )
     parser.add_argument(
+        "--mono",
+        action="store_true",
+        help=(
+            "Use the single-width JetBrainsMonoNerdFontMono base, shrinking "
+            "Nerd Font icons to one cell. Default uses the non-Mono base, "
+            "keeping icons at full size (they overhang into the next cell)."
+        ),
+    )
+    parser.add_argument(
         "--korean-italic-mode",
         choices=("upright",),
         default="upright",
@@ -170,6 +178,7 @@ def validate_styles(styles: list[str]) -> list[str]:
 
 def select_variants(
     *,
+    mono: bool = False,
     all_variants: bool = False,
     variant_names: list[str] | None = None,
     weights: list[str] | None = None,
@@ -184,14 +193,14 @@ def select_variants(
         raise ValueError(msg)
 
     if all_variants or (variant_names is None and weights is None and styles is None):
-        return list(DEFAULT_VARIANTS)
+        return get_variants_by_weights_and_styles(SUPPORTED_WEIGHTS, SUPPORTED_STYLES, mono=mono)
 
     if variant_names:
-        return get_variants_by_names(variant_names)
+        return get_variants_by_names(variant_names, mono=mono)
 
     selected_weights = validate_weights(weights if weights is not None else list(DEFAULT_WEIGHTS))
     selected_styles = validate_styles(styles if styles is not None else ["normal"])
-    return get_variants_by_weights_and_styles(selected_weights, selected_styles)
+    return get_variants_by_weights_and_styles(selected_weights, selected_styles, mono=mono)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -203,6 +212,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         variants = select_variants(
+            mono=args.mono,
             all_variants=args.all,
             variant_names=args.variants,
             weights=args.weights,
@@ -237,7 +247,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if not latin_path.exists():
             logger.error("Latin font file not found: %s", latin_path)
-            logger.error("Run `make download` to fetch JetBrainsMonoNerdFontMono files.")
+            logger.error("Run `make download` to fetch JetBrainsMono Nerd Font files.")
             return 1
         if not cjk_path.exists():
             logger.error("CJK font file not found: %s", cjk_path)

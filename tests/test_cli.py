@@ -65,6 +65,23 @@ def test_select_variants_explicit_names() -> None:
     assert [variant.output_suffix for variant in variants] == ["Regular", "BoldItalic"]
 
 
+def test_select_variants_defaults_to_non_mono_base() -> None:
+    variants = select_variants(variant_names=["Regular", "BoldItalic"])
+    assert [variant.latin_filename for variant in variants] == [
+        "JetBrainsMonoNerdFont-Regular.ttf",
+        "JetBrainsMonoNerdFont-BoldItalic.ttf",
+    ]
+
+
+def test_select_variants_mono_flag_uses_mono_base() -> None:
+    variants = select_variants(mono=True, variant_names=["Regular", "BoldItalic"])
+    assert [variant.latin_filename for variant in variants] == [
+        "JetBrainsMonoNerdFontMono-Regular.ttf",
+        "JetBrainsMonoNerdFontMono-BoldItalic.ttf",
+    ]
+    assert select_variants(mono=True)[0].latin_filename == ("JetBrainsMonoNerdFontMono-Thin.ttf")
+
+
 def test_select_variants_rejects_ambiguous_combinations() -> None:
     with pytest.raises(ValueError, match="--all cannot be combined"):
         select_variants(all_variants=True, weights=["Regular"])

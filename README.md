@@ -4,7 +4,7 @@ This project is heavily inspired by
 [Yeomil Mono](https://github.com/taevel02/yeomil-mono) and reuses much of its
 implementation with minimal changes. Compared with
 [Yeomil Mono](https://github.com/taevel02/yeomil-mono), Jetendard uses
-JetBrainsMono Nerd Font Mono instead of
+JetBrainsMono Nerd Font instead of
 [Geist Mono](https://github.com/vercel/geist-font/tree/main/fonts/GeistMono)
 and applies a `1.15` scale to
 [Pretendard](https://github.com/orioncactus/pretendard). Slightly enlarging
@@ -13,11 +13,11 @@ spacing feel more visually stable while improving the clarity and precision of
 Hangul rendering.
 
 Jetendard is a reproducible font build project that combines
-[JetBrainsMono Nerd Font Mono](https://github.com/ryanoasis/nerd-fonts) with
+[JetBrainsMono Nerd Font](https://github.com/ryanoasis/nerd-fonts) with
 [Pretendard](https://github.com/orioncactus/pretendard) Korean glyphs.
 
 The generated family is named `Jetendard`. Latin glyphs, programming ligatures,
-and Nerd Font symbols come from the ligature-enabled `JetBrainsMonoNerdFontMono`
+and Nerd Font symbols come from the ligature-enabled `JetBrainsMonoNerdFont`
 files. Korean and CJK glyphs come from Pretendard and are fitted into exactly two
 Latin monospace advances.
 
@@ -62,9 +62,10 @@ uv run jetendard --help
 
 Important options:
 
-- `--latin-dir`: directory containing `JetBrainsMonoNerdFontMono-*.ttf`
+- `--latin-dir`: directory containing JetBrainsMono Nerd Font `*.ttf` files (Mono and non-Mono)
 - `--cjk-dir`: directory containing `Pretendard-*.ttf`
 - `--all`: build the full 16-variant matrix
+- `--mono`: use the single-width `JetBrainsMonoNerdFontMono` base (icons shrunk to one cell); the default non-Mono base keeps icons at full size
 - `--variants`: explicit output variants such as `Regular`, `Italic`, or `BoldItalic`
 - `--weights`: weights to build; without `--styles`, this selects upright variants
 - `--styles`: `normal`, `italic`, or both
@@ -84,8 +85,9 @@ uv run jetendard --variants Regular Light Bold
 
 ## Variant Coverage
 
-Jetendard builds every ligature-enabled `JetBrainsMonoNerdFontMono` Mono TTF
-variant present in the pinned Nerd Fonts archive:
+Jetendard builds every ligature-enabled `JetBrainsMonoNerdFont` TTF variant
+present in the pinned Nerd Fonts archive (or the single-width
+`JetBrainsMonoNerdFontMono` variant with `--mono`):
 
 | Weight | Upright | Italic | Pretendard Korean/CJK source |
 | --- | --- | --- | --- |
@@ -105,15 +107,20 @@ identify those variants as italic.
 
 ## Scope
 
-Jetendard only uses `JetBrainsMonoNerdFontMono`. It does not use
-`JetBrainsMonoNerdFont`, `JetBrainsMonoNerdFontPropo`, or `JetBrainsMonoNL`
-no-ligature variants. Because the base font is already Nerd Font patched, this
-project does not run a second Nerd Fonts patching step.
+Jetendard uses the ligature-enabled `JetBrainsMonoNerdFont` base by default and
+the single-width `JetBrainsMonoNerdFontMono` base with `--mono`. The difference
+is icon size: the non-Mono base keeps Nerd Font symbols at full size, so they
+overhang into the next cell in renderers that honor advance width (for example
+Zed or VS Code); terminals such as Ghostty apply their own icon sizing and may
+look the same either way. `--mono` shrinks every symbol to a single cell. Both
+bases keep Latin at one cell and Korean/CJK at exactly two. Jetendard does not
+use the `JetBrainsMonoNerdFontPropo` or no-ligature `JetBrainsMonoNL` variants.
+Because the base font is already Nerd Font patched, this project does not run a
+second Nerd Fonts patching step.
 
-`Pretendard-Black` is not built by default because the confirmed
-`JetBrainsMonoNerdFontMono` archive does not contain a matching Black source.
-The downloader also extracts `PretendardVariable.ttf` when available for future
-custom-weight work.
+`Pretendard-Black` is not built by default because the confirmed JetBrains Mono
+Nerd Font archive does not contain a matching Black source. The downloader also
+extracts `PretendardVariable.ttf` when available for future custom-weight work.
 
 ## Visual Check Samples
 

@@ -136,8 +136,13 @@ def new_ot_table(class_name: str) -> Any:
     return table_class()
 
 
-def make_font_variant(weight_name: str, style: str) -> FontVariant:
-    """Create a build variant for a supported weight/style pair."""
+def make_font_variant(weight_name: str, style: str, *, mono: bool = False) -> FontVariant:
+    """Create a build variant for a supported weight/style pair.
+
+    ``mono`` selects the single-width ``JetBrainsMonoNerdFontMono`` base
+    (icons shrunk to one cell). The default uses the ``JetBrainsMonoNerdFont``
+    non-Mono base, whose icons render at full size and overhang the cell.
+    """
     if weight_name not in WEIGHT_TO_CSS:
         supported = ", ".join(SUPPORTED_WEIGHTS)
         msg = f"Unsupported weight {weight_name!r}. Supported: {supported}"
@@ -157,11 +162,12 @@ def make_font_variant(weight_name: str, style: str) -> FontVariant:
         output_suffix = weight_name
         subfamily_name = weight_name
 
+    latin_base = "JetBrainsMonoNerdFontMono" if mono else "JetBrainsMonoNerdFont"
     return FontVariant(
         weight_name=weight_name,
         css_weight=WEIGHT_TO_CSS[weight_name],
         style=style,
-        latin_filename=f"JetBrainsMonoNerdFontMono-{latin_suffix}.ttf",
+        latin_filename=f"{latin_base}-{latin_suffix}.ttf",
         cjk_weight_name=weight_name,
         output_suffix=output_suffix,
         subfamily_name=subfamily_name,
@@ -178,21 +184,25 @@ DEFAULT_VARIANTS = tuple(
 VARIANTS_BY_SUFFIX = {variant.output_suffix: variant for variant in DEFAULT_VARIANTS}
 
 
-def get_variants_by_names(variant_names: list[str] | tuple[str, ...]) -> list[FontVariant]:
+def get_variants_by_names(
+    variant_names: list[str] | tuple[str, ...],
+    *,
+    mono: bool = False,
+) -> list[FontVariant]:
     """Resolve output suffix names to variants, preserving request order."""
     variants: list[FontVariant] = []
     seen: set[str] = set()
     unsupported: list[str] = []
 
     for name in variant_names:
-        variant = VARIANTS_BY_SUFFIX.get(name)
-        if variant is None:
+        base = VARIANTS_BY_SUFFIX.get(name)
+        if base is None:
             unsupported.append(name)
             continue
-        if variant.output_suffix in seen:
+        if base.output_suffix in seen:
             continue
-        variants.append(variant)
-        seen.add(variant.output_suffix)
+        variants.append(make_font_variant(base.weight_name, base.style, mono=mono))
+        seen.add(base.output_suffix)
 
     if unsupported:
         supported = ", ".join(VARIANTS_BY_SUFFIX)
@@ -205,9 +215,11 @@ def get_variants_by_names(variant_names: list[str] | tuple[str, ...]) -> list[Fo
 def get_variants_by_weights_and_styles(
     weights: list[str] | tuple[str, ...],
     styles: list[str] | tuple[str, ...],
+    *,
+    mono: bool = False,
 ) -> list[FontVariant]:
     """Resolve weight/style selectors to variants."""
-    return [make_font_variant(weight, style) for weight in weights for style in styles]
+    return [make_font_variant(weight, style, mono=mono) for weight in weights for style in styles]
 
 
 def is_cjk(code: int) -> bool:
@@ -611,7 +623,7 @@ def merge_fonts(
     is_italic: bool = False,
     css_weight: int | None = None,
 ) -> MergeStats:
-    """Merge JetBrainsMono Nerd Font Mono with Pretendard CJK glyphs."""
+    """Merge a JetBrainsMono Nerd Font base with Pretendard CJK glyphs."""
     logger.info("Merging %s + %s -> %s", latin_path, cjk_path, output_path)
     latin_font = TTFont(str(latin_path))
     cjk_font = TTFont(str(cjk_path))

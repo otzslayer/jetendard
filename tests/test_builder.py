@@ -104,10 +104,24 @@ def test_regular_italic_variant_uses_special_source_filename() -> None:
 
     assert variant.output_suffix == "Italic"
     assert variant.subfamily_name == "Italic"
-    assert variant.latin_filename == "JetBrainsMonoNerdFontMono-Italic.ttf"
+    assert variant.latin_filename == "JetBrainsMonoNerdFont-Italic.ttf"
     assert variant.cjk_weight_name == "Regular"
     assert variant.css_weight == 400
     assert variant.is_italic is True
+
+
+def test_make_font_variant_mono_flag_selects_base_prefix() -> None:
+    assert (
+        make_font_variant("Regular", "normal").latin_filename == "JetBrainsMonoNerdFont-Regular.ttf"
+    )
+    assert (
+        make_font_variant("Regular", "normal", mono=True).latin_filename
+        == "JetBrainsMonoNerdFontMono-Regular.ttf"
+    )
+    assert (
+        make_font_variant("Bold", "italic", mono=True).latin_filename
+        == "JetBrainsMonoNerdFontMono-BoldItalic.ttf"
+    )
 
 
 def test_get_variants_by_names_rejects_unknown_variant() -> None:
@@ -255,7 +269,7 @@ def test_enforce_monospace_flags() -> None:
 
 
 def test_integration_merge_skips_without_upstream_fonts(tmp_path: Path) -> None:
-    latin_path = Path("upstream/jetbrainsmono/JetBrainsMonoNerdFontMono-Regular.ttf")
+    latin_path = Path("upstream/jetbrainsmono/JetBrainsMonoNerdFont-Regular.ttf")
     cjk_path = Path("upstream/pretendard/Pretendard-Regular.ttf")
     if not latin_path.exists() or not cjk_path.exists():
         pytest.skip("upstream fonts have not been downloaded")

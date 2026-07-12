@@ -13,7 +13,11 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from jetendard.builder import DEFAULT_VARIANTS, SUPPORTED_WEIGHTS  # noqa: E402
+from jetendard.builder import (  # noqa: E402
+    SUPPORTED_STYLES,
+    SUPPORTED_WEIGHTS,
+    make_font_variant,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -35,6 +39,16 @@ ARCHIVE_DIR = UPSTREAM_DIR / "_archives"
 JETBRAINS_DIR = UPSTREAM_DIR / "jetbrainsmono"
 PRETENDARD_DIR = UPSTREAM_DIR / "pretendard"
 OPTIONAL_PRETENDARD_FILES = ("PretendardVariable.ttf",)
+
+
+def jetbrains_expected_files() -> set[str]:
+    """Return every JetBrains Mono Nerd Font TTF to extract (Mono + non-Mono)."""
+    names: set[str] = set()
+    for weight in SUPPORTED_WEIGHTS:
+        for style in SUPPORTED_STYLES:
+            names.add(make_font_variant(weight, style).latin_filename)
+            names.add(make_font_variant(weight, style, mono=True).latin_filename)
+    return names
 
 
 def download_file(url: str, output_path: Path) -> None:
@@ -122,7 +136,7 @@ def extract_expected_fonts(
 
 def write_sources_note() -> None:
     """Write a small note documenting the downloaded upstream versions."""
-    jetbrains_files = sorted({variant.latin_filename for variant in DEFAULT_VARIANTS})
+    jetbrains_files = sorted(jetbrains_expected_files())
     pretendard_files = [f"Pretendard-{weight}.ttf" for weight in SUPPORTED_WEIGHTS]
     note = "\n".join(
         [
@@ -131,7 +145,7 @@ def write_sources_note() -> None:
             f"- Nerd Fonts JetBrainsMono: {NERD_FONTS_VERSION}",
             f"- Pretendard: {PRETENDARD_VERSION}",
             "",
-            "## Extracted JetBrainsMono Nerd Font Mono Files",
+            "## Extracted JetBrains Mono Nerd Font Files",
             "",
             *[f"- `{filename}`" for filename in jetbrains_files],
             "",
@@ -149,11 +163,11 @@ def write_sources_note() -> None:
 
 
 def main() -> int:
-    """Download upstream JetBrainsMono Nerd Font Mono and Pretendard files."""
+    """Download upstream JetBrainsMono Nerd Font and Pretendard files."""
     jetbrains_archive = ARCHIVE_DIR / f"JetBrainsMono-{NERD_FONTS_VERSION}.zip"
     pretendard_archive = ARCHIVE_DIR / f"Pretendard-{PRETENDARD_VERSION}.zip"
 
-    jetbrains_expected = {variant.latin_filename for variant in DEFAULT_VARIANTS}
+    jetbrains_expected = jetbrains_expected_files()
     pretendard_expected = {f"Pretendard-{weight}.ttf" for weight in SUPPORTED_WEIGHTS}
 
     try:
