@@ -1,7 +1,7 @@
 [project]
 name = "jetendard"
 version = "0.1.0"
-description = "Build Jetendard, a JetBrainsMono Nerd Font Mono and Pretendard Korean monospace font."
+description = "Build Jetendard, a JetBrainsMono Nerd Font and Pretendard Korean monospace font."
 readme = "README.md"
 authors = [
     { name = "Jung Woong Park" }
